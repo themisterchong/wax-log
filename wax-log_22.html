@@ -1,0 +1,2697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#111111">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Wax Log">
+<meta name="apple-touch-fullscreen" content="yes">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<title>Wax Log</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg:     #111111;
+  --bg2:    #181818;
+  --bg3:    #212121;
+  --line:   #2a2a2a;
+  --line2:  #333333;
+  --muted:  #6b6b6b;
+  --mid:    #999999;
+  --text:   #e0dbd4;
+  --bright: #f5f0e8;
+  --accent: #e8a020;
+  --accent2:#c8841a;
+  --red:    #e05555;
+  --green:  #4caf78;
+  --radius: 12px;
+  --radius-lg: 16px;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.screen {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+  animation: fadeUp 0.22s ease;
+}
+.screen.active { display: flex; }
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(7px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  padding: 52px 20px 16px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 0.06em;
+  color: var(--bright);
+  line-height: 1;
+}
+.logo em { color: var(--accent); font-style: normal; }
+
+.topbar-right {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: right;
+  line-height: 1.7;
+}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 100%; max-width: 430px;
+  background: rgba(17,17,17,0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--line);
+  display: flex;
+  z-index: 50;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.nav-btn svg { width: 22px; height: 22px; stroke: var(--muted); transition: stroke 0.15s; }
+.nav-btn span {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  transition: color 0.15s;
+}
+.nav-btn.active svg { stroke: var(--accent); }
+.nav-btn.active span { color: var(--accent); }
+
+/* ── ADD SCREEN ── */
+.scan-zone {
+  margin: 16px 20px 0;
+  border: 1px solid var(--line2);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg2);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.scan-zone-inner {
+  flex: 1;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 50%, rgba(232,200,74,0.06) 0%, transparent 70%),
+    radial-gradient(circle at 20% 80%, rgba(232,200,74,0.04) 0%, transparent 40%),
+    radial-gradient(circle at 80% 20%, rgba(232,200,74,0.03) 0%, transparent 40%);
+}
+
+/* Vinyl groove rings */
+.scan-zone-inner::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 18%, rgba(232,200,74,0.04) 18.4%, transparent 19%),
+    radial-gradient(circle at 50% 50%, transparent 25%, rgba(232,200,74,0.035) 25.4%, transparent 26%),
+    radial-gradient(circle at 50% 50%, transparent 33%, rgba(232,200,74,0.03) 33.4%, transparent 34%),
+    radial-gradient(circle at 50% 50%, transparent 41%, rgba(232,200,74,0.025) 41.4%, transparent 42%),
+    radial-gradient(circle at 50% 50%, transparent 49%, rgba(232,200,74,0.02) 49.4%, transparent 50%),
+    radial-gradient(circle at 50% 50%, transparent 57%, rgba(232,200,74,0.015) 57.4%, transparent 58%),
+    radial-gradient(circle at 50% 50%, transparent 65%, rgba(232,200,74,0.01) 65.4%, transparent 66%);
+  animation: slowSpin 30s linear infinite;
+  pointer-events: none;
+}
+@keyframes slowSpin { to { transform: rotate(360deg); } }
+
+/* Scan line */
+.scan-zone-inner::after {
+  content: '';
+  position: absolute;
+  left: 12%; right: 12%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  box-shadow: 0 0 8px rgba(232,200,74,0.5);
+  opacity: 0;
+  animation: scanLine 2.6s ease-in-out infinite;
+  z-index: 2;
+}
+.scan-zone-inner.scanning::after { opacity: 1; }
+@keyframes scanLine {
+  0%   { top: 15%; opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  100% { top: 85%; opacity: 0; }
+}
+
+#previewImg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: contain; background: var(--bg3);
+  display: none;
+}
+
+.scan-icon {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1px solid var(--line2);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; z-index: 1;
+}
+.scan-icon svg { width: 38px; height: 38px; stroke: var(--accent); }
+
+.scan-hint { text-align: center; position: relative; z-index: 1; }
+.scan-hint-main {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 24px; font-weight: 600;
+  color: var(--bright); display: block; line-height: 1.2;
+}
+.scan-hint-sub {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 400;
+  color: var(--muted);
+  display: block; margin-top: 8px;
+  letter-spacing: 0.01em;
+}
+
+.scan-row {
+  display: flex;
+  border-top: 1px solid var(--line);
+}
+.scan-row-btn {
+  flex: 1; padding: 14px;
+  background: none; border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 500;
+  color: var(--mid);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  transition: color 0.15s, background 0.15s;
+}
+.scan-row-btn:first-child { border-right: 1px solid var(--line); }
+.scan-row-btn:hover { color: var(--accent); background: rgba(232,160,32,0.05); }
+.scan-row-btn svg { width: 16px; height: 16px; stroke: currentColor; }
+
+#fileInput, #galleryInput { display: none; }
+
+.search-row {
+  margin: 14px 20px 16px;
+  display: flex; gap: 10px;
+}
+.input-field {
+  flex: 1;
+  background: var(--bg2);
+  border: 1px solid var(--line2);
+  border-radius: var(--radius);
+  padding: 13px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px; font-weight: 400;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+.input-field::placeholder { color: var(--muted); }
+.input-field:focus { border-color: var(--accent); }
+
+.btn-go {
+  padding: 13px 18px;
+  border-radius: var(--radius);
+  background: var(--accent);
+  border: none;
+  color: #0c0c0c;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer; flex-shrink: 0;
+  transition: background 0.15s;
+}
+.btn-go:hover { background: var(--accent2); }
+
+.spinner-wrap {
+  display: none; flex-direction: column;
+  align-items: center; padding: 40px 20px; gap: 14px;
+}
+.spinner-wrap.show { display: flex; }
+.spinner {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 2.5px solid var(--line2);
+  border-top-color: var(--accent);
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px; color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
+.results-wrap { display: none; flex-direction: column; }
+.results-wrap.show { display: flex; }
+
+.sec-head {
+  padding: 18px 20px 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px; letter-spacing: 0;
+  text-transform: uppercase; color: var(--muted);
+  display: flex; justify-content: space-between;
+}
+
+.result-card {
+  margin: 0 20px 10px;
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex; gap: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  align-items: flex-start;
+}
+.result-card:hover, .result-card:active {
+  border-color: var(--accent);
+  background: rgba(232,160,32,0.05);
+}
+
+.result-thumb {
+  width: 72px; height: 72px;
+  border-radius: 10px; background: var(--bg3);
+  border: 1px solid var(--line2);
+  flex-shrink: 0; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.result-thumb img { width: 100%; height: 100%; object-fit: contain; background: var(--bg3); }
+.thumb-ph { font-size: 28px; }
+
+.result-body { flex: 1; min-width: 0; }
+.r-title {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px; font-weight: 600;
+  color: var(--bright); margin-bottom: 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.r-artist {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 400;
+  color: var(--mid); margin-bottom: 8px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.r-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip {
+  font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500;
+  padding: 3px 8px; border-radius: 20px;
+  border: 1px solid var(--line2); color: var(--mid);
+}
+.chip.y { border-color: rgba(232,160,32,0.45); color: var(--accent); }
+
+/* ── BOTTOM SHEET ── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 100; opacity: 0; pointer-events: none;
+  transition: opacity 0.3s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+
+.sheet {
+  position: fixed;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%) translateY(100%);
+  width: 100%; max-width: 430px;
+  background: var(--bg2);
+  border-radius: 20px 20px 0 0;
+  border-top: 1px solid var(--line2);
+  z-index: 101;
+  max-height: 92dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  transition: transform 0.36s cubic-bezier(0.32,0.72,0,1);
+  padding-bottom: env(safe-area-inset-bottom, 24px);
+}
+.overlay.open .sheet { transform: translateX(-50%) translateY(0); }
+
+.drag-handle {
+  width: 40px; height: 4px; border-radius: 2px;
+  background: var(--line2); margin: 12px auto;
+}
+
+.sheet-head {
+  padding: 4px 20px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.sheet-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px; letter-spacing: 0.04em;
+  color: var(--bright); line-height: 1.1; margin-bottom: 2px;
+}
+.sheet-sub {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px; color: var(--muted);
+}
+
+.sheet-sec {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.sheet-sec-lbl {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 12px;
+}
+
+.grade-row { display: flex; gap: 7px; }
+.g-pill {
+  flex: 1; padding: 10px 4px; text-align: center;
+  border-radius: 10px; border: 1px solid var(--line2);
+  background: var(--bg3); cursor: pointer; transition: all 0.18s;
+}
+.g-pill.sel { border-color: var(--accent); background: rgba(232,160,32,0.12); }
+.g-code {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 17px; letter-spacing: 0.04em;
+  color: var(--bright); display: block; line-height: 1;
+}
+.g-pill.sel .g-code { color: var(--accent); }
+.g-name { display: none; }
+
+.field-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.field-group.one { grid-template-columns: 1fr; }
+.fw { display: flex; flex-direction: column; gap: 6px; }
+.fl {
+  font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+}
+.fi {
+  background: var(--bg3); border: 1px solid var(--line2);
+  border-radius: 10px; padding: 11px 13px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px;
+  color: var(--text); outline: none; width: 100%;
+  transition: border-color 0.2s; -webkit-appearance: none;
+}
+.fi:focus { border-color: var(--accent); }
+.fi::placeholder { color: var(--muted); }
+textarea.fi { resize: none; line-height: 1.6; height: 90px; }
+
+.mood-wrap { display: flex; flex-wrap: wrap; gap: 7px; }
+.mood-pill {
+  padding: 7px 14px; border-radius: 20px;
+  border: 1px solid var(--line2); background: none;
+  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
+  color: var(--mid); cursor: pointer; transition: all 0.15s;
+}
+.mood-pill.sel { background: var(--accent); border-color: var(--accent); color: #111; }
+
+.sheet-actions { padding: 18px 20px 0; display: flex; flex-direction: column; gap: 10px; }
+
+.btn-primary {
+  width: 100%; padding: 17px; border-radius: 14px;
+  border: none; background: var(--accent); color: #111;
+  font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer; transition: background 0.15s;
+}
+.btn-primary:hover { background: var(--accent2); }
+
+.btn-ghost {
+  width: 100%; padding: 15px; border-radius: 14px;
+  border: 1px solid var(--line2); background: none;
+  color: var(--muted); font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s;
+}
+
+/* ── COLLECTION SCREEN ── */
+.coll-stats { padding: 16px 20px 0; display: flex; gap: 10px; }
+.stat-box {
+  flex: 1; background: var(--bg2); border: 1px solid var(--line);
+  border-radius: 14px; padding: 14px; text-align: center;
+}
+.stat-num {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 30px; font-weight: 700; color: var(--accent); line-height: 1;
+}
+.stat-lbl {
+  font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500;
+  color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 4px;
+}
+
+.empty-state {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px; padding: 40px 32px; text-align: center;
+}
+.empty-icon { font-size: 52px; }
+.empty-title { font-size: 20px; font-weight: 600; color: var(--bright); }
+.empty-sub {
+  font-family: 'DM Sans', sans-serif; font-size: 13px;
+  color: var(--muted); line-height: 1.8;
+}
+
+.coll-list { padding: 0 20px; }
+.coll-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 0; border-bottom: 1px solid var(--line);
+  cursor: pointer; transition: opacity 0.15s;
+}
+.coll-item:last-child { border-bottom: none; }
+.coll-item:hover { opacity: 0.72; }
+
+.c-thumb {
+  width: 56px; height: 56px; border-radius: 8px;
+  background: var(--bg3); flex-shrink: 0;
+  border: 1px solid var(--line2);
+  overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 22px;
+}
+.c-thumb img { width: 100%; height: 100%; object-fit: contain; background: var(--bg3); }
+
+.c-info { flex: 1; min-width: 0; }
+.c-title {
+  font-size: 14px; font-weight: 700; color: var(--bright);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.c-artist {
+  font-size: 12px; color: var(--mid); margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.c-badges { display: flex; gap: 5px; margin-top: 5px; align-items: center; }
+.b-grade {
+  font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600;
+  padding: 2px 7px; border-radius: 4px;
+  background: rgba(232,200,74,0.1);
+  color: var(--accent); border: 1px solid rgba(232,200,74,0.25);
+}
+.b-meta { font-family: 'Inter', sans-serif; font-size: 11px; color: var(--muted); }
+.c-arrow { color: var(--muted); font-size: 18px; flex-shrink: 0; }
+.c-bpm {
+  flex-shrink: 0; text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px; font-weight: 800; color: var(--accent);
+  line-height: 1;
+}
+.c-bpm small { display: block; font-size: 11px; font-weight: 400; color: var(--muted); margin-top: 2px; }
+
+/* ── LABEL SCREEN ── */
+.lbl-inner { padding: 0 20px; display: flex; flex-direction: column; gap: 14px; }
+
+.sel-wrap { display: flex; flex-direction: column; gap: 6px; }
+.lbl-sel {
+  width: 100%; background: var(--bg2); border: 1px solid var(--line2);
+  border-radius: 12px; padding: 13px 16px;
+  font-family: 'Inter', sans-serif; font-size: 14px; color: var(--text);
+  outline: none; cursor: pointer;
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23555' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+}
+.lbl-sel option { background: #1c1c1c; }
+
+.size-tabs {
+  display: flex; background: var(--bg3);
+  border-radius: 12px; padding: 3px; border: 1px solid var(--line);
+}
+.sz-tab {
+  flex: 1; padding: 10px; border-radius: 9px;
+  border: none; background: none;
+  font-family: 'Inter', sans-serif; font-size: 12px;
+  color: var(--muted); cursor: pointer; transition: all 0.18s;
+  letter-spacing: 0.06em; text-align: center; line-height: 1.3;
+}
+.sz-tab small { display: block; font-size: 11px; opacity: 0.7; margin-top: 1px; }
+.sz-tab.active { background: var(--bg); color: var(--accent); border: 1px solid var(--line2); }
+
+/* Label preview box */
+.preview-box {
+  background: var(--bg2); border: 1px solid var(--line2);
+  border-radius: var(--radius); overflow: hidden;
+}
+.preview-box-head {
+  padding: 12px 16px; border-bottom: 1px solid var(--line);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.preview-box-lbl {
+  font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600;
+  color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase;
+}
+.printer-row { display: flex; align-items: center; gap: 7px; }
+.printer-name {
+  font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; color: var(--muted);
+}
+.dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--muted);
+  transition: background 0.3s;
+}
+.dot.on { background: var(--green); animation: blink 2s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+/* The actual paper label — B&W for thermal printing */
+.dymo-paper {
+  margin: 16px; background: #fff;
+  border-radius: 3px; color: #000;
+  position: relative; overflow: hidden;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.25);
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  transition: all 0.2s;
+}
+.dymo-paper::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; bottom: 0; width: 3px;
+  background: #000;
+}
+.dymo-paper.s { padding: 8px 10px 8px 12px; min-height: 52px; }
+.dymo-paper.m { padding: 11px 12px 11px 15px; min-height: 68px; }
+.dymo-paper.l { padding: 14px 14px 14px 19px; min-height: 90px; }
+
+.d-artist { font-weight: 800; color: #000; }
+.d-title  { color: #222; margin-top: 1px; }
+.d-meta   { color: #555; display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+.d-sep    { color: #aaa; }
+.d-genre  { font-style: italic; color: #666; }
+.d-grade  { font-weight: 700; color: #000; }
+.d-tracks { margin-top: 4px; display: flex; flex-direction: column; gap: 1px; }
+.d-track-row { line-height: 1.55; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.d-track-name { }
+.d-track-bpm { color: #222; font-weight: 800; }
+.d-track-bpm-unit { font-size: 0.72em; opacity: 0.5; font-weight: 400; }
+.d-bpm {
+  position: absolute; right: 4px; top: 50%;
+  transform: translateY(-50%);
+  background: #000; color: #fff;
+  border-radius: 3px; text-align: center; font-weight: 900; line-height: 1;
+  letter-spacing: -0.02em;
+}
+.d-bpm small { font-size: 60%; font-weight: 500; display: block; margin-top: 2px; letter-spacing: 0.08em; }
+.d-empty { padding: 22px; text-align: center; font-size: 12px; color: #bbb; font-family: 'Inter', sans-serif; }
+
+/* Size-specific fonts */
+.dymo-paper.s .d-artist { font-size: 11px; }
+.dymo-paper.s .d-title  { font-size: 11px; }
+.dymo-paper.s .d-meta   { font-size: 8.5px; }
+.dymo-paper.s .d-tracks { font-size: 11px; }
+.dymo-paper.s .d-bpm    { font-size: 18px; padding: 4px 7px; min-width: 38px; }
+.dymo-paper.s .d-bpm small { font-size: 7px; }
+
+.dymo-paper.m .d-artist { font-size: 14px; }
+.dymo-paper.m .d-title  { font-size: 11.5px; }
+.dymo-paper.m .d-meta   { font-size: 10px; }
+.dymo-paper.m .d-tracks { font-size: 11px; }
+.dymo-paper.m .d-bpm    { font-size: 24px; padding: 6px 9px; min-width: 48px; }
+.dymo-paper.m .d-bpm small { font-size: 8.5px; }
+
+.dymo-paper.l .d-artist { font-size: 17px; }
+.dymo-paper.l .d-title  { font-size: 14px; }
+.dymo-paper.l .d-meta   { font-size: 11px; }
+.dymo-paper.l .d-tracks { font-size: 11px; }
+.dymo-paper.l .d-bpm    { font-size: 28px; padding: 8px 11px; min-width: 58px; }
+.dymo-paper.l .d-bpm small { font-size: 12px; }
+
+/* Track editor rows */
+.lbl-toggle {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg3); border: 1px solid var(--line2);
+  border-radius: 8px; padding: 6px 10px; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  user-select: none;
+}
+.lbl-toggle:has(input:checked) {
+  border-color: var(--accent);
+  background: rgba(232,160,32,0.12);
+}
+.lbl-toggle input { display: none; }
+.lbl-toggle span {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px; font-weight: 600; color: var(--muted);
+}
+.lbl-toggle:has(input:checked) span { color: var(--accent); }
+
+.track-editor { display: flex; flex-direction: column; gap: 0; margin-top: 4px; }
+.track-edit-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.track-edit-row:last-child { border-bottom: none; }
+.track-cb {
+  width: 18px; height: 18px; flex-shrink: 0;
+  accent-color: var(--accent); cursor: pointer;
+}
+.track-edit-pos {
+  font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600;
+  color: var(--muted); width: 22px; flex-shrink: 0; text-align: center;
+}
+.track-edit-name {
+  flex: 1; font-size: 12px; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  min-width: 0;
+}
+.track-edit-row.unchecked .track-edit-name { color: var(--muted); text-decoration: line-through; }
+.track-bpm-input, .track-key-input {
+  flex-shrink: 0;
+  background: var(--bg); border: 1px solid var(--line2);
+  border-radius: 6px; padding: 4px 6px;
+  font-family: 'Inter', sans-serif; font-size: 12px;
+  color: var(--text); outline: none; text-align: center;
+  -webkit-appearance: none;
+}
+.track-bpm-input { width: 52px; }
+.track-key-input { width: 52px; }
+.track-bpm-input:focus, .track-key-input:focus { border-color: var(--accent); }
+.track-bpm-input::placeholder, .track-key-input::placeholder { color: var(--muted); }
+.track-loading {
+  font-family: 'Inter', sans-serif; font-size: 12px;
+  color: var(--muted); padding: 12px 0; text-align: center;
+}
+
+/* Extra label fields */
+.lbl-fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.lbl-fields-grid .fw.full { grid-column: 1 / -1; }
+textarea.fi.short { height: 70px; }
+
+/* Print / export buttons */
+.btn-print {
+  width: 100%; padding: 17px; border-radius: 14px;
+  border: none; background: #c0392b; color: #fff;
+  font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  gap: 10px; transition: background 0.15s; letter-spacing: 0.02em;
+}
+.btn-print:hover { background: #a93226; }
+.btn-print svg { width: 18px; height: 18px; stroke: currentColor; }
+
+.print-note {
+  text-align: center;
+  font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600;
+  color: var(--muted); letter-spacing: 0.05em; line-height: 1.8;
+}
+
+/* ── DETAIL GRADE EDITOR ── */
+.det-grade-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.det-g-pill {
+  font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+  padding: 5px 11px; border-radius: 20px;
+  border: 1px solid var(--line2); background: var(--bg3);
+  color: var(--muted); cursor: pointer; transition: all 0.2s;
+  white-space: nowrap;
+}
+.det-g-pill .g-full {
+  font-size: 10px; font-weight: 400; opacity: 0;
+  max-width: 0; overflow: hidden; display: inline-block;
+  transition: max-width 0.2s, opacity 0.2s, margin 0.2s;
+  margin-left: 0; vertical-align: middle;
+}
+.det-g-pill.sel {
+  background: var(--accent); border-color: var(--accent);
+  color: #0c0c0c; font-weight: 700;
+}
+.det-g-pill.sel .g-full {
+  opacity: 0.7; max-width: 60px; margin-left: 4px;
+}
+.det-grade-saved {
+  font-family: 'Inter', sans-serif; font-size: 11px;
+  color: var(--green); margin-top: 4px; opacity: 0;
+  transition: opacity 0.3s;
+}
+.det-grade-saved.show { opacity: 1; }
+.det-tracklist-loading {
+  font-family: 'Inter', sans-serif; font-size: 12px;
+  color: var(--muted); padding: 10px 0; display: flex;
+  align-items: center; gap: 8px;
+}
+.det-tracklist-loading::before {
+  content: ''; width: 10px; height: 10px; border-radius: 50%;
+  border: 2px solid var(--accent); border-top-color: transparent;
+  animation: spin 0.7s linear infinite; flex-shrink: 0;
+}
+
+/* ── FILTER BAR ── */
+.filter-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 20px 12px; flex-wrap: wrap;
+}
+.filter-pill {
+  font-family: 'Inter', sans-serif; font-size: 12px;
+  padding: 6px 14px; border-radius: 20px;
+  border: 1px solid var(--line2); background: var(--bg3);
+  color: var(--mid); cursor: pointer; white-space: nowrap;
+  transition: all 0.15s;
+}
+.filter-pill.active {
+  background: var(--accent); border-color: var(--accent);
+  color: #0c0c0c; font-weight: 700;
+}
+.filter-select {
+  font-family: 'Inter', sans-serif; font-size: 12px;
+  padding: 6px 10px; border-radius: 20px;
+  border: 1px solid var(--line2); background: var(--bg3);
+  color: var(--mid); cursor: pointer; outline: none;
+  -webkit-appearance: none; appearance: none;
+  flex: 1; min-width: 0;
+}
+.filter-select:focus { border-color: var(--accent); }
+
+/* ── DETAIL SHEET ── */
+.det-section {
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.det-section-lbl {
+  font-family: 'Inter', sans-serif; font-size: 11px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 6px;
+}
+.det-tags {
+  display: flex; flex-wrap: wrap; gap: 5px;
+}
+.det-tag {
+  font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600;
+  padding: 3px 8px; border-radius: 20px;
+  border: 1px solid var(--line2); color: var(--mid);
+  background: var(--bg3);
+}
+.det-tag.accent { border-color: rgba(232,200,74,0.4); color: var(--accent); }
+.det-track-row {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.det-track-row:last-child { border-bottom: none; }
+.det-track-pos {
+  font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600;
+  color: var(--muted); width: 24px; flex-shrink: 0;
+}
+.det-track-name { flex: 1; color: var(--text); }
+.det-track-bpm {
+  font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600;
+  color: var(--accent); flex-shrink: 0;
+}
+
+/* ── DETAIL GRADE EDITOR ── */
+.det-grade-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.det-g-pill {
+  font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+  padding: 5px 11px; border-radius: 20px;
+  border: 1px solid var(--line2); background: var(--bg3);
+  color: var(--muted); cursor: pointer; transition: all 0.2s;
+  white-space: nowrap;
+}
+.det-g-pill .g-full {
+  font-size: 10px; font-weight: 400; opacity: 0;
+  max-width: 0; overflow: hidden; display: inline-block;
+  transition: max-width 0.2s, opacity 0.2s, margin 0.2s;
+  margin-left: 0; vertical-align: middle;
+}
+.det-g-pill.sel {
+  background: var(--accent); border-color: var(--accent);
+  color: #0c0c0c; font-weight: 700;
+}
+.det-g-pill.sel .g-full {
+  opacity: 0.7; max-width: 60px; margin-left: 4px;
+}
+.det-grade-saved {
+  font-family: 'Inter', sans-serif; font-size: 11px;
+  color: var(--green); margin-top: 4px; opacity: 0;
+  transition: opacity 0.3s;
+}
+.det-grade-saved.show { opacity: 1; }
+.det-tracklist-loading {
+  font-family: 'Inter', sans-serif; font-size: 12px;
+  color: var(--muted); padding: 10px 0; display: flex;
+  align-items: center; gap: 8px;
+}
+.det-tracklist-loading::before {
+  content: ''; width: 10px; height: 10px; border-radius: 50%;
+  border: 2px solid var(--accent); border-top-color: transparent;
+  animation: spin 0.7s linear infinite; flex-shrink: 0;
+}
+
+/* ── FILTER BAR ── */
+.filter-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 20px 12px; flex-wrap: wrap;
+}
+.filter-pill {
+  font-family: 'Inter', sans-serif; font-size: 12px;
+  padding: 6px 14px; border-radius: 20px;
+  border: 1px solid var(--line2); background: var(--bg3);
+  color: var(--mid); cursor: pointer; white-space: nowrap;
+  transition: all 0.15s;
+}
+.filter-pill.active {
+  background: var(--accent); border-color: var(--accent);
+  color: #0c0c0c; font-weight: 700;
+}
+.filter-select {
+  font-family: 'Inter', sans-serif; font-size: 12px;
+  padding: 6px 10px; border-radius: 20px;
+  border: 1px solid var(--line2); background: var(--bg3);
+  color: var(--mid); cursor: pointer; outline: none;
+  -webkit-appearance: none; appearance: none;
+  flex: 1; min-width: 0;
+}
+.filter-select:focus { border-color: var(--accent); }
+
+/* ── DETAIL SHEET ── */
+.detail-cover {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px; padding: 20px 20px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.detail-cover-thumb {
+  width: min(400px, calc(100vw - 80px)); height: min(400px, calc(100vw - 80px));
+  border-radius: 12px;
+  background: var(--bg3); flex-shrink: 0; overflow: hidden;
+  border: 1px solid var(--line2);
+  display: flex; align-items: center; justify-content: center;
+}
+.detail-cover-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.detail-cover-text { width: 100%; text-align: center; }
+.det-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px; letter-spacing: 0.04em;
+  color: var(--bright); line-height: 1.1;
+}
+.det-artist { font-size: 14px; color: #c8b89a; margin-top: 3px; }
+
+.det-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 5px; padding: 8px 20px; border-bottom: 1px solid var(--line);
+}
+.det-cell { background: var(--bg3); border-radius: 7px; padding: 5px 8px; }
+.det-key {
+  font-family: 'Inter', sans-serif; font-size: 9px;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 1px;
+}
+.det-val { font-family: 'Inter', sans-serif; font-size: 11px; color: var(--bright); }
+.det-val.ac { color: var(--accent); }
+
+.det-tracks { padding: 14px 20px; border-bottom: 1px solid var(--line); }
+.track-row { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.track-row:last-child { border-bottom: none; }
+.track-pos { font-family: 'Inter', sans-serif; font-size: 11px; color: var(--muted); width: 22px; flex-shrink: 0; }
+.track-name { flex: 1; color: var(--text); }
+
+.det-actions { padding: 16px 20px 0; display: flex; flex-direction: column; gap: 10px; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; top: 60px; left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  background: var(--bg3); border: 1px solid var(--line2);
+  color: var(--text); padding: 11px 22px; border-radius: 30px;
+  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
+  letter-spacing: 0.02em; opacity: 0; pointer-events: none;
+  transition: all 0.25s; z-index: 300; white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.toast.ok  { background: rgba(80,200,120,0.14); border-color: rgba(80,200,120,0.4); color: var(--green); }
+.toast.err { background: rgba(224,80,80,0.12); border-color: rgba(224,80,80,0.35); color: var(--red); }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══ ADD SCREEN ══ -->
+<div class="screen active" id="screen-add">
+  <div class="topbar">
+    <div class="logo">Wax<em>&nbsp;Log</em></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="topbar-right" id="topMeta">0 records</div>
+      <button id="btnSettings" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:2px 4px" title="Settings">⚙</button>
+    </div>
+  </div>
+
+  <div class="scan-zone">
+    <div class="scan-zone-inner" id="scanZone" >
+      <img id="previewImg" alt="">
+      <div class="scan-icon" id="scanIconEl">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+      </div>
+      <div class="scan-hint" id="scanHint">
+        <span class="scan-hint-main">Photograph your record</span>
+        <span class="scan-hint-sub">label · sleeve · centre label</span>
+      </div>
+    </div>
+    <div class="scan-row">
+      <button class="scan-row-btn" id="btnCamera">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Camera
+      </button>
+      <button class="scan-row-btn" id="btnGallery">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Gallery
+      </button>
+    </div>
+  </div>
+
+  <input type="file" id="fileInput" accept="image/*" capture="environment" >
+  <input type="file" id="galleryInput" accept="image/*" >
+  <input type="file" id="labelInput" accept="image/*" style="display:none">
+
+  <div id="labelPrompt" style="display:none;margin:12px 20px 0;background:rgba(232,200,74,0.08);border:1px solid rgba(232,200,74,0.3);border-radius:14px;padding:14px 16px;align-items:center;gap:12px">
+    <div style="font-size:22px;flex-shrink:0">💿</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:Inter,sans-serif;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:3px">No text on front cover</div>
+      <div style="font-family:Inter,sans-serif;font-size:11px;color:var(--muted);line-height:1.5">Scan the <strong style="color:var(--text)">centre label</strong> or <strong style="color:var(--text)">back cover</strong></div>
+    </div>
+    <button id="btnScanLabel" style="background:var(--accent);border:none;border-radius:10px;padding:9px 14px;font-family:Inter,sans-serif;font-size:12px;font-weight:700;color:#0c0c0c;cursor:pointer;flex-shrink:0;white-space:nowrap">Scan label</button>
+  </div>
+
+  <div class="search-row">
+    <input class="input-field" id="searchInput" placeholder="Artist, title, or catalog #" >
+    <button class="btn-go" >Search</button>
+  </div>
+
+  <div class="spinner-wrap" id="spinWrap">
+    <div class="spinner"></div>
+    <div class="spinner-text">Searching Discogs…</div>
+  </div>
+
+  <div class="results-wrap" id="resultsWrap">
+    <div class="sec-head">Select the correct pressing</div>
+    <div id="resultsList"></div>
+  </div>
+</div>
+
+<!-- ══ COLLECTION SCREEN ══ -->
+<div class="screen" id="screen-coll">
+  <div class="topbar">
+    <div class="logo">Wax<em>&nbsp;Log</em></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button id="btnImport" style="background:none;border:1px solid var(--line2);border-radius:8px;padding:5px 11px;font-family:'Inter', sans-serif;font-size:10px;color:var(--mid);cursor:pointer;white-space:nowrap">↓ Import</button>
+      <button id="btnExportCsv" style="background:none;border:1px solid var(--line2);border-radius:8px;padding:5px 11px;font-family:'Inter', sans-serif;font-size:10px;color:var(--mid);cursor:pointer;white-space:nowrap">↑ Export</button>
+      <div class="topbar-right" id="collMeta"></div>
+    </div>
+  </div>
+
+  <!-- Import overlay -->
+  <div class="overlay" id="importOvl">
+    <div class="sheet" style="max-height:70vh">
+      <div class="drag-handle" id="importDragHandle"></div>
+      <div class="sheet-head">
+        <div class="sheet-title">Import from Discogs</div>
+        <div class="sheet-sub">Fetches your full vinyl collection</div>
+      </div>
+      <div class="sheet-sec">
+        <div class="sheet-sec-lbl">Discogs username</div>
+        <input class="fi" id="importUsername" placeholder="your_username" autocorrect="off" autocapitalize="off">
+        <div style="font-family:'Inter', sans-serif;font-size:10px;color:var(--muted);margin-top:8px;line-height:1.7">
+          Found on your Discogs profile URL:<br>discogs.com/user/<strong style="color:var(--text)">username</strong>
+        </div>
+      </div>
+      <div id="importProgress" style="display:none;padding:0 20px 14px">
+        <div style="font-family:'Inter', sans-serif;font-size:11px;color:var(--accent)" id="importStatus">Fetching…</div>
+        <div style="margin-top:8px;height:4px;background:var(--line);border-radius:2px;overflow:hidden">
+          <div id="importBar" style="height:100%;background:var(--accent);width:0%;transition:width 0.3s;border-radius:2px"></div>
+        </div>
+      </div>
+      <div class="sheet-actions">
+        <button class="btn-primary" id="btnImportGo">Import Collection</button>
+        <button class="btn-ghost" id="btnImportCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Overlay -->
+  <div class="overlay" id="settingsOvl">
+    <div class="sheet">
+      <div class="drag-handle"></div>
+      <div class="sheet-head">
+        <div class="sheet-title">Settings</div>
+        <div class="sheet-sub">API keys &amp; preferences</div>
+      </div>
+      <div class="sheet-sec">
+        <div class="sheet-sec-lbl">Anthropic API Key</div>
+        <input class="fi" id="apiKeyInp" type="password" placeholder="sk-ant-…" autocorrect="off" autocapitalize="none">
+      </div>
+
+      <div class="sheet-actions">
+        <button class="btn-primary" id="btnSaveKey">Save</button>
+        <button class="btn-ghost" id="btnCancelSettings">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="collEmpty" class="empty-state">
+    <div class="empty-icon">💿</div>
+    <div class="empty-title">Vault is empty</div>
+    <div class="empty-sub">Scan your first record<br>to build the collection</div>
+  </div>
+  <div id="collHead" style="display:none">
+    <div class="filter-bar">
+      <button class="filter-pill active" id="sortLbl" data-sort="az">A→Z</button>
+      <button class="filter-pill" id="sortBpm">BPM ↑</button>
+    </div>
+    <div class="filter-bar" style="padding-top:0">
+      <select class="filter-select" id="genreFilter">
+        <option value="">All genres</option>
+      </select>
+      <select class="filter-select" id="styleFilter">
+        <option value="">All styles</option>
+      </select>
+    </div>
+  </div>
+  <div class="coll-list" id="collList"></div>
+</div>
+
+<!-- ══ LABEL SCREEN ══ -->
+<div class="screen" id="screen-lbl">
+  <div class="lbl-inner" style="overflow-y:auto;flex:1;padding-top:16px">
+      <div class="sel-wrap">
+        <div class="fl">Record</div>
+        <select class="lbl-sel" id="lblSel">
+          <option value="">— select from collection —</option>
+        </select>
+      </div>
+
+      <div>
+        <div class="fl" style="margin-bottom:8px">Label size</div>
+        <div class="size-tabs">
+          <button class="sz-tab" data-size="s">11352<small>54×25 mm</small></button>
+          <button class="sz-tab active" data-size="m">99010<small>89×28 mm</small></button>
+          <button class="sz-tab" data-size="l">99012<small>89×36 mm</small></button>
+        </div>
+      </div>
+
+      <div class="preview-box">
+        <div class="preview-box-head">
+          <span class="preview-box-lbl">Preview</span>
+          <div class="printer-row">
+            <span class="printer-name" id="pName">Searching…</span>
+            <div class="dot" id="pDot"></div>
+          </div>
+        </div>
+        <div class="dymo-paper m" id="dymoLabel">
+          <div class="d-empty">Select a record above</div>
+        </div>
+      </div>
+
+      <div id="lblExtra" style="display:none">
+        <div class="fl" style="margin-bottom:12px">Customise label</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+          <label class="lbl-toggle"><input type="checkbox" id="ltArtist" checked><span>Artist</span></label>
+          <label class="lbl-toggle"><input type="checkbox" id="ltTitle" checked><span>Title</span></label>
+          <label class="lbl-toggle"><input type="checkbox" id="ltPress" checked><span>Press / Country</span></label>
+          <label class="lbl-toggle"><input type="checkbox" id="ltYear" checked><span>Year</span></label>
+          <label class="lbl-toggle"><input type="checkbox" id="ltGrade" checked><span>Grading</span></label>
+          <label class="lbl-toggle"><input type="checkbox" id="ltBpm" checked><span>BPM</span></label>
+          <label class="lbl-toggle"><input type="checkbox" id="ltGenre" checked><span>Genre</span></label>
+          <label class="lbl-toggle"><input type="checkbox" id="ltStyle" checked><span>Style</span></label>
+        </div>
+
+        <div class="fl" style="margin-bottom:8px">Tracklist — check tracks, set key &amp; BPM per track</div>
+        <div id="lblTrackEditor" class="track-editor"></div>
+      </div>
+
+      <button class="btn-print" id="btnPrint">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 6 2 18 2 18 9"/>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+          <rect x="6" y="14" width="12" height="8"/>
+        </svg>
+        Print Wirelessly
+      </button>
+      <button class="btn-ghost" id="btnExport">Export / Save as PDF</button>
+      <div class="print-note">
+        Dymo LabelWriter must be on the same Wi-Fi.<br>
+        First visit <strong style="color:var(--text)">connect.dymo.com</strong> to enable wireless printing.
+      </div>
+      <div style="height:16px"></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="nav-add" data-screen="add">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    <span>Add</span>
+  </button>
+  <button class="nav-btn" id="nav-coll" data-screen="coll">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    <span>Collection</span>
+  </button>
+  <button class="nav-btn" id="nav-lbl" data-screen="lbl">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+    <span>Label</span>
+  </button>
+
+</nav>
+</div>
+
+<!-- ADD SHEET -->
+<div class="overlay" id="addOvl">
+  <div class="sheet">
+    <div class="drag-handle"></div>
+    <div class="sheet-head" style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px 20px 18px">
+      <div id="shCover" style="width:min(400px, calc(100vw - 80px));height:min(400px, calc(100vw - 80px));border-radius:12px;overflow:hidden;background:var(--bg3);flex-shrink:0;display:none;border:1px solid var(--line2);align-items:center;justify-content:center">
+        <img id="shCoverImg" src="" alt="" style="width:100%;height:100%;object-fit:contain;background:var(--bg3);">
+      </div>
+      <div style="width:100%;text-align:center">
+        <div class="sheet-title" id="shTitle">Title</div>
+        <div class="sheet-sub" id="shSub" style="margin-top:3px">Artist</div>
+      </div>
+    </div>
+
+    <div class="sheet-sec">
+      <div class="sheet-sec-lbl">Record grade</div>
+      <div class="grade-row" id="recGrades">
+        <div class="g-pill" data-type="rec" data-grade="M"><span class="g-code">M</span><span class="g-name">Mint</span></div>
+        <div class="g-pill" data-type="rec" data-grade="NM"><span class="g-code">NM</span><span class="g-name">N.Mint</span></div>
+        <div class="g-pill" data-type="rec" data-grade="VG+"><span class="g-code">VG+</span><span class="g-name">V.Gd+</span></div>
+        <div class="g-pill" data-type="rec" data-grade="VG"><span class="g-code">VG</span><span class="g-name">V.Gd</span></div>
+        <div class="g-pill" data-type="rec" data-grade="G+"><span class="g-code">G+</span><span class="g-name">Gd+</span></div>
+        <div class="g-pill" data-type="rec" data-grade="G"><span class="g-code">G</span><span class="g-name">Good</span></div>
+      </div>
+    </div>
+
+    <div class="sheet-sec">
+      <div class="sheet-sec-lbl">Sleeve grade</div>
+      <div class="grade-row" id="slvGrades">
+        <div class="g-pill" data-type="slv" data-grade="M"><span class="g-code">M</span><span class="g-name">Mint</span></div>
+        <div class="g-pill" data-type="slv" data-grade="NM"><span class="g-code">NM</span><span class="g-name">N.Mint</span></div>
+        <div class="g-pill" data-type="slv" data-grade="VG+"><span class="g-code">VG+</span><span class="g-name">V.Gd+</span></div>
+        <div class="g-pill" data-type="slv" data-grade="VG"><span class="g-code">VG</span><span class="g-name">V.Gd</span></div>
+        <div class="g-pill" data-type="slv" data-grade="G+"><span class="g-code">G+</span><span class="g-name">Gd+</span></div>
+        <div class="g-pill" data-type="slv" data-grade="G"><span class="g-code">G</span><span class="g-name">Good</span></div>
+      </div>
+    </div>
+
+    <div class="sheet-sec" id="addTrackSec" style="display:none">
+      <div class="sheet-sec-lbl">Tracklist</div>
+      <div id="nTrackEditor" class="track-editor">
+        <div class="track-loading">Loading…</div>
+      </div>
+    </div>
+
+    <div class="sheet-actions">
+      <button class="btn-primary" id="btnConfirmAdd">Add to Collection</button>
+      <button class="btn-ghost" id="btnCancelAdd">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL SHEET -->
+<div class="overlay" id="detOvl">
+  <div class="sheet">
+    <div class="drag-handle" id="detDragHandle"></div>
+    <div id="detContent"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════
+// CONFIG  — edit these if tokens change
+// ══════════════════════════════════
+const DISCOGS_TOKEN = 'FyjGeZQqMKKIpyYjJuqOqMVkSeRTTpdRrpHeMhLl';
+
+// API key management
+function getApiKey()   { return localStorage.getItem('waxlog_apikey') || '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'; }
+// Two CORS proxies — first is tried, second is fallback
+// Needed because browsers block direct cross-origin calls to api.discogs.com
+// Direct fetch with CORS proxy fallback (needed when opening as file://)
+async function proxyFetch(apiUrl) {
+  // Try direct first
+  try {
+    const res = await fetch(apiUrl, { headers: { 'User-Agent': 'WaxLog/1.0' } });
+    if (res.ok) return await res.json();
+  } catch(e) {}
+  // Try corsproxy.io
+  try {
+    const res = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(apiUrl)}`);
+    if (res.ok) return await res.json();
+  } catch(e) {}
+  // Try allorigins
+  try {
+    const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`);
+    if (res.ok) return await res.json();
+  } catch(e) {}
+  throw new Error('All fetch attempts failed — check your connection');
+}
+
+// ══════════════════════════════════
+// STATE
+// ══════════════════════════════════
+let vault = JSON.parse(localStorage.getItem('waxlog3') || '[]');
+let pending = null;
+let grades  = { rec:'', slv:'' };
+let sortMode = "az";   // az | za | bpm_asc | bpm_desc
+let genreFilter = "";  // active genre filter
+let styleFilter  = "";  // active style filter
+let lblSize = 'm';
+let lblIdx  = -1;
+let detIdx  = -1;
+let searchCache = [];
+
+// ══════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════
+function go(name, btn) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo(0, 0);
+  if (name==='coll') renderColl();
+  if (name==='lbl') { populateLblSel(); detectPrinter(); }
+}
+
+// ══════════════════════════════════
+// SCAN / SEARCH
+// ══════════════════════════════════
+
+
+
+// Called when user picks a photo from camera or gallery
+async function onFile(inp) {
+  if (!inp.files || !inp.files[0]) return;
+  const file = inp.files[0];
+
+  // Show preview immediately
+  const img = document.getElementById('previewImg');
+  img.src = URL.createObjectURL(file);
+  img.style.display = 'block';
+  document.getElementById('scanIconEl').style.display = 'none';
+  document.getElementById('scanHint').style.display   = 'none';
+  document.getElementById('scanZone').classList.add('scanning');
+  document.getElementById('spinWrap').classList.add('show');
+  document.getElementById('resultsWrap').classList.remove('show');
+
+  try {
+    // Check API key first
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      document.getElementById('scanZone').classList.remove('scanning');
+      document.getElementById('spinWrap').classList.remove('show');
+      toast('Add an API key above to enable photo scan', 'err');
+      return;
+    }
+
+    // Convert to base64
+    const b64  = await fileToBase64(file);
+    const mime = 'image/jpeg'; // always JPEG after canvas conversion
+
+    // Claude vision scan
+    console.log('Sending to Claude — b64 length:', b64.length);
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type':                          'application/json',
+        'x-api-key':                             getApiKey(),
+        'anthropic-version':                     '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model:      'claude-sonnet-4-6',
+        max_tokens: 400,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mime, data: b64 } },
+            { type: 'text',  text: `You are a vinyl record identifier. Look at this image and read the text on it.
+
+Focus on finding:
+1. Artist name
+2. Album or track title
+3. Catalog number if visible
+4. Label name if visible
+
+Return ONLY this JSON, no markdown:
+{"artist":"","title":"","label":"","catno":"","year":"","queries":[]}
+
+- queries: 3 Discogs search strings. First should be "artist title", second just the artist, third the catalog number if found.
+- Keep artist and title exactly as written on the label, including accents and special characters.` }
+          ]
+        }]
+      })
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      console.error('Full API error:', errText);
+      let errMsg = errText;
+      try { errMsg = JSON.parse(errText).error?.message || errText; } catch(e) {}
+      throw new Error(`API ${resp.status}: ${errMsg.slice(0,120)}`);
+    }
+
+    const json = await resp.json();
+    console.log('API response:', JSON.stringify(json));
+    const text = (json.content?.[0]?.text || '').trim();
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('No JSON in response: ' + text.slice(0,80));
+
+    const parsed = JSON.parse(match[0]);
+    const { artist, title, catno, label } = parsed;
+    // Build structured artist|||title query as top priority
+    const structuredQuery = (artist && title) ? `${artist} ||| ${title}` : null;
+    const fallbackQueries = parsed.queries && parsed.queries.length
+      ? parsed.queries
+      : [[artist, title].filter(Boolean).join(' ')];
+    const claudeQueries = structuredQuery
+      ? [structuredQuery, ...fallbackQueries]
+      : fallbackQueries;
+
+    const detected = [artist, title].filter(Boolean).join(' ') || catno || claudeQueries[0];
+    document.getElementById('searchInput').value = detected;
+    document.getElementById('scanZone').classList.remove('scanning');
+
+    let found = false;
+    if (detected) toast(`Searching: ${detected.slice(0,40)}…`, 'ok');
+    for (const q of claudeQueries) {
+      if (!q?.trim()) continue;
+      if (await runSearch(q, true)) { found = true; break; }
+    }
+
+    if (!found) {
+      document.getElementById('spinWrap').classList.remove('show');
+      const bestQuery = catno || [artist, title].filter(Boolean).join(' ') || claudeQueries[0] || detected;
+      document.getElementById('searchInput').value = bestQuery || '';
+      const hasText = !!(artist || title || catno || label);
+      if (!hasText) {
+        showLabelPrompt();
+      } else {
+        const hint = [label, catno].filter(Boolean).join(' · ');
+        toast(`Not found${hint ? ' · ' + hint : ''} — edit & try`, 'err');
+      }
+    }
+
+  } catch(e) {
+    console.error('Photo scan error:', e);
+    document.getElementById('scanZone').classList.remove('scanning');
+    document.getElementById('spinWrap').classList.remove('show');
+    const msg = e.message || String(e);
+    toast('Scan failed: ' + msg.slice(0, 60), 'err');
+    document.getElementById('searchInput').focus();
+  }
+
+  // Reset file input so same file can be re-selected
+  inp.value = '';
+}
+
+// Convert any image to JPEG via canvas before sending to API
+// Handles HEIC, HEIF, WebP and any other format the browser can decode
+function showLabelPrompt() {
+  const el = document.getElementById('labelPrompt');
+  el.style.display = 'flex';
+  toast('Artwork-only cover — scan the centre label!', 'err');
+}
+function hideLabelPrompt() {
+  document.getElementById('labelPrompt').style.display = 'none';
+}
+
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      // Cap at 1600px on longest side to keep payload reasonable
+      const max = 1600;
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if (w > max || h > max) {
+        if (w > h) { h = Math.round(h * max / w); w = max; }
+        else       { w = Math.round(w * max / h); h = max; }
+      }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+      res(dataUrl.split(',')[1]);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('Image decode failed')); };
+    img.src = url;
+  });
+}
+
+function doSearch() {
+  const q = document.getElementById('searchInput').value.trim();
+  if (!q) { toast('Type an artist or album title', 'err'); return; }
+  runSearch(q);
+}
+
+async function runSearch(q, silent=false) {
+  document.getElementById('spinWrap').classList.add('show');
+  document.getElementById('resultsWrap').classList.remove('show');
+  document.getElementById('resultsList').innerHTML = '';
+
+  try {
+    // If query contains ' ||| ' it's a structured artist|||title query
+    let apiUrl;
+    if (q.includes(' ||| ')) {
+      const [a, t] = q.split(' ||| ');
+      apiUrl = `https://api.discogs.com/database/search?artist=${encodeURIComponent(a)}&title=${encodeURIComponent(t)}&type=release&per_page=25&token=${DISCOGS_TOKEN}`;
+    } else {
+      apiUrl = `https://api.discogs.com/database/search?q=${encodeURIComponent(q)}&type=release&per_page=25&token=${DISCOGS_TOKEN}`;
+    }
+    const data = await proxyFetch(apiUrl);
+
+    if (!data.results || !data.results.length) {
+      document.getElementById('spinWrap').classList.remove('show');
+      if (!silent) toast('No vinyl results — try different keywords', 'err');
+      return false;
+    }
+
+    // Parse results — Discogs title field is "Artist - Album Title"
+    searchCache = data.results.map(r => {
+      const sepIdx = r.title.indexOf(' - ');
+      const artist = sepIdx > -1 ? r.title.slice(0, sepIdx).trim()     : 'Unknown';
+      const title  = sepIdx > -1 ? r.title.slice(sepIdx + 3).trim()    : r.title;
+      const label  = Array.isArray(r.label)  ? r.label[0]  : (r.label  || '—');
+      const fmt    = Array.isArray(r.format) ? r.format[0] : (r.format || 'LP');
+      return {
+        discogsId: r.id,
+        title, artist,
+        year:    r.year    || '—',
+        label,
+        country: r.country || '—',
+        catno:   r.catno   || '—',
+        format:  fmt,
+        press:   buildPressLabel(r),
+        thumb:   r.thumb   || '',
+        genre:   Array.isArray(r.genre) ? r.genre : (r.genre ? [r.genre] : []),
+        style:   Array.isArray(r.style) ? r.style : (r.style ? [r.style] : []),
+        tracks:  []
+      };
+    });
+
+    document.getElementById('spinWrap').classList.remove('show');
+    renderResults(searchCache);
+    return true;
+
+  } catch(e) {
+    document.getElementById('spinWrap').classList.remove('show');
+    console.error('Discogs search error:', e);
+    if (!silent) toast(`Search error: ${e.message}`, 'err');
+    return false;
+  }
+}
+
+function buildPressLabel(r) {
+  const parts = [];
+  if (r.country) parts.push(r.country);
+  if (r.year)    parts.push(r.year);
+  // Extra format descriptors (e.g. "Repress", "Promo", "Stereo")
+  if (Array.isArray(r.format) && r.format.length > 1) {
+    parts.push(r.format.slice(1).join(', '));
+  }
+  return parts.join(' · ') || 'Pressing';
+}
+
+function renderResults(data) {
+  document.getElementById('resultsList').innerHTML = data.map((r, i) => `
+    <div class="result-card" data-idx="${i}">
+      <div class="result-thumb">
+        ${r.thumb
+          ? `<img src="${escHtml(r.thumb)}" alt=""
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+             <div class="thumb-ph" style="display:none">💿</div>`
+          : `<div class="thumb-ph">💿</div>`}
+      </div>
+      <div class="result-body">
+        <div class="r-title">${escHtml(r.title)}</div>
+        <div class="r-artist">${escHtml(r.artist)}</div>
+        <div class="r-chips">
+          <span class="chip y">${escHtml(r.press)}</span>
+          <span class="chip">${escHtml(r.country)} · ${escHtml(String(r.year))}</span>
+          <span class="chip">${escHtml(r.format)}</span>
+          <span class="chip">${escHtml(r.catno)}</span>
+        </div>
+      </div>
+    </div>`).join('');
+  document.getElementById('resultsWrap').classList.add('show');
+}
+
+// Fetch full tracklist from a specific release
+async function fetchTracks(discogsId) {
+  try {
+    const data = await proxyFetch(`https://api.discogs.com/releases/${discogsId}?token=${DISCOGS_TOKEN}`);
+    return (data.tracklist || [])
+      .filter(t => t.type_ !== 'heading')
+      .map(t => [t.position, t.title, t.duration ? `(${t.duration})` : ''].filter(Boolean).join(' - '));
+  } catch(e) {
+    console.error('fetchTracks:', e);
+    return [];
+  }
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ══════════════════════════════════
+// TRACK EDITOR
+// ══════════════════════════════════
+
+// Parse raw string tracks (legacy) into track objects
+function parseTracksToObjects(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw; // already objects
+  return raw.split('\n').filter(t => t.trim()).map(t => {
+    const d = t.indexOf(' - ');
+    const pos  = d > -1 ? t.slice(0, d).trim() : '';
+    const name = d > -1 ? t.slice(d + 3).trim() : t.trim();
+    return { pos, name, bpm: '', show: false };
+  });
+}
+
+// Render an interactive track editor into a container element
+// containerId: DOM id of the container div
+// tracks: array of {pos, name, bpm, show}
+// onChange: callback(updatedTracks) called on any change
+function renderTrackEditor(containerId, tracks, onChange) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  if (!tracks || !tracks.length) {
+    container.innerHTML = '<div class="track-loading">No tracklist available</div>';
+    return;
+  }
+
+  container.innerHTML = tracks.map((t, i) => `
+    <div class="track-edit-row${t.show ? '' : ' unchecked'}" data-i="${i}">
+      <input type="checkbox" class="track-cb" data-i="${i}" ${t.show ? 'checked' : ''}>
+      <span class="track-edit-pos">${escHtml(t.pos)}</span>
+      <span class="track-edit-name">${escHtml(t.name)}</span>
+      <input type="text" class="track-key-input" data-i="${i}"
+        placeholder="Key" value="${escHtml(t.key || '')}" maxlength="6">
+      <input type="number" class="track-bpm-input" data-i="${i}"
+        placeholder="BPM" value="${escHtml(t.bpm || '')}"
+        min="60" max="250">
+    </div>`).join('');
+
+  // Wire checkbox toggles
+  container.querySelectorAll('.track-cb').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const i = parseInt(cb.dataset.i);
+      tracks[i].show = cb.checked;
+      const row = container.querySelector(`.track-edit-row[data-i="${i}"]`);
+      row.classList.toggle('unchecked', !cb.checked);
+      onChange(tracks);
+    });
+  });
+
+  // Wire Key inputs
+  container.querySelectorAll('.track-key-input').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const i = parseInt(inp.dataset.i);
+      tracks[i].key = inp.value.trim();
+      onChange(tracks);
+    });
+  });
+
+  // Wire BPM inputs
+  container.querySelectorAll('.track-bpm-input').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const i = parseInt(inp.dataset.i);
+      tracks[i].bpm = inp.value.trim();
+      onChange(tracks);
+    });
+  });
+}
+
+// ══════════════════════════════════
+// ADD FLOW
+// ══════════════════════════════════
+async function pickResult(i) {
+  const r = searchCache[i];
+
+  // Show sheet immediately with search result data
+  pending = { ...r, tracks: [] };
+  grades = {rec:'',slv:''};
+  document.querySelectorAll('#addOvl .g-pill').forEach(p=>p.classList.remove('sel'));
+  document.getElementById('shTitle').textContent = r.title;
+  document.getElementById('shSub').textContent = `${r.artist} · ${r.press} · ${r.year}`;
+  document.getElementById('addTrackSec').style.display = 'none';
+  document.getElementById('nTrackEditor').innerHTML = '<div class="track-loading">Loading…</div>';
+  // Show cover image if available
+  const shCover = document.getElementById('shCover');
+  const shCoverImg = document.getElementById('shCoverImg');
+  if (r.thumb || r.fullImg) {
+    shCoverImg.src = r.fullImg || r.thumb;
+    shCover.style.display = 'flex';
+  } else {
+    shCover.style.display = 'none';
+  }
+  openOvl('addOvl');
+
+  // Fetch full release data — gets accurate pressing year, country, label, catno + tracklist
+  try {
+    const data = await proxyFetch(`https://api.discogs.com/releases/${r.discogsId}?token=${DISCOGS_TOKEN}`);
+
+    // Accurate pressing details from full release
+    const pressYear   = data.released ? data.released.slice(0, 4) : (data.year ? String(data.year) : r.year);
+    const pressCountry= data.country  || r.country;
+    const pressLabel  = data.labels?.[0]?.name  || r.label;
+    const pressCatno  = data.labels?.[0]?.catno || r.catno;
+    const fmtName     = data.formats?.[0]?.name || r.format;
+    const fmtDesc     = data.formats?.[0]?.descriptions?.join(', ') || '';
+    const pressParts  = [pressCountry, pressYear, fmtDesc].filter(Boolean);
+
+    // Update pending with accurate data
+    pending.year    = pressYear;
+    pending.country = pressCountry;
+    pending.label   = pressLabel;
+    pending.catno   = pressCatno;
+    pending.format  = fmtName;
+    pending.press   = pressParts.join(' · ') || r.press;
+    pending.genre   = data.genres || r.genre || [];
+    pending.style   = data.styles || r.style || [];
+    pending.fullImg = data.images?.[0]?.uri || '';
+
+    // Upgrade to full-res image from release data
+    const fullImg = data.images?.[0]?.uri || data.images?.[0]?.uri150 || '';
+    if (fullImg && shCoverImg) {
+      shCoverImg.src = fullImg;
+      shCover.style.display = 'flex';
+      pending.thumb = fullImg;
+    }
+
+    // Update sheet subtitle with accurate info
+    document.getElementById('shSub').textContent = `${pending.artist} · ${pending.press}`;
+
+    // Tracklist
+    pending.tracks = (data.tracklist || [])
+      .filter(t => t.type_ !== 'heading')
+      .map(t => ({ pos: t.position, name: t.title, bpm: '', show: false }));
+
+  } catch(e) {
+    console.warn('Full release fetch failed, using search data:', e.message);
+    // Fall back to fetchTracks only
+    const rawTracks = await fetchTracks(r.discogsId);
+    pending.tracks = rawTracks.map(t => {
+      const d = t.indexOf(' - ');
+      return { pos: d > -1 ? t.slice(0,d).trim() : '', name: d > -1 ? t.slice(d+3).trim() : t.trim(), bpm: '', show: false };
+    });
+  }
+
+  if (pending.tracks.length) {
+    document.getElementById('addTrackSec').style.display = 'block';
+    renderTrackEditor('nTrackEditor', pending.tracks, updated => { pending.tracks = updated; });
+  } else {
+    document.getElementById('nTrackEditor').innerHTML = '<div class="track-loading">No tracklist available</div>';
+    document.getElementById('addTrackSec').style.display = 'block';
+  }
+}
+
+function setGrade(type, val, el) {
+  const row = type==='rec' ? 'recGrades' : 'slvGrades';
+  document.querySelectorAll(`#${row} .g-pill`).forEach(p=>p.classList.remove('sel'));
+  el.classList.add('sel');
+  grades[type] = val;
+}
+
+function confirmAdd() {
+  if (!grades.rec) { toast('Pick a record grade first','err'); return; }
+  // Prevent duplicates
+  if (pending.discogsId && vault.some(r => r.discogsId === pending.discogsId)) {
+    toast('Already in your vault','err'); return;
+  }
+  vault.push({
+    ...pending,
+    recordGrade: grades.rec,
+    sleeveGrade: grades.slv || '—',
+    tracks: pending.tracks || [],
+    addedAt: Date.now()
+  });
+  save(); closeOvl('addOvl'); updateMeta();
+  toast('Added to Vault ✓','ok');
+  // Reset
+  document.getElementById('searchInput').value = '';
+  document.getElementById('resultsWrap').classList.remove('show');
+  document.getElementById('previewImg').style.display='none';
+  document.getElementById('scanIconEl').style.display='flex';
+  document.getElementById('scanHint').style.display='block';
+  // Navigate to collection
+  go('coll', document.getElementById('nav-coll'));
+}
+
+// ══════════════════════════════════
+// COLLECTION
+// ══════════════════════════════════
+function renderColl() {
+  const list  = document.getElementById('collList');
+  const empty = document.getElementById('collEmpty');
+  const head  = document.getElementById('collHead');
+
+  // Stats — always from full vault
+  // (stats boxes removed — count shown in topbar via updateMeta)
+
+  if (!vault.length) { empty.style.display='flex'; list.innerHTML=''; head.style.display='none'; return; }
+  empty.style.display='none'; head.style.display='block';
+
+  // Populate genre dropdown
+  const allGenres = new Set();
+  vault.forEach(r => (r.genre||[]).forEach(g=>allGenres.add(g)));
+  const gSel = document.getElementById('genreFilter');
+  const prevG = gSel.value;
+  gSel.innerHTML = '<option value="">All genres</option>' +
+    [...allGenres].sort().map(g=>`<option value="${escHtml(g)}">${escHtml(g)}</option>`).join('');
+  gSel.value = allGenres.has(prevG) ? prevG : '';
+  genreFilter = gSel.value;
+
+  // Populate style dropdown
+  const allStyles = new Set();
+  vault.forEach(r => (r.style||[]).forEach(s=>allStyles.add(s)));
+  const sSel = document.getElementById('styleFilter');
+  const prevS = sSel.value;
+  sSel.innerHTML = '<option value="">All styles</option>' +
+    [...allStyles].sort().map(s=>`<option value="${escHtml(s)}">${escHtml(s)}</option>`).join('');
+  sSel.value = allStyles.has(prevS) ? prevS : '';
+  styleFilter = sSel.value;
+
+  // Filter
+  let view = vault.map((r,i)=>({r,i}));
+  if (genreFilter) {
+    view = view.filter(({r}) => (r.genre||[]).includes(genreFilter));
+  }
+  if (styleFilter) {
+    view = view.filter(({r}) => (r.style||[]).includes(styleFilter));
+  }
+
+  // Sort
+  if (sortMode === 'az') {
+    view.sort((a,b)=>a.r.artist.localeCompare(b.r.artist));
+  } else if (sortMode === 'za') {
+    view.sort((a,b)=>b.r.artist.localeCompare(a.r.artist));
+  } else {
+    // BPM sort — use lowest track BPM or record BPM
+    const getBpm = r => {
+      const tracks = parseTracksToObjects(r.tracks);
+      const bpms = tracks.map(t=>+t.bpm).filter(Boolean);
+      return bpms.length ? Math.min(...bpms) : (+r.bpm || 0);
+    };
+    view.sort((a,b) => sortMode === 'bpm_asc'
+      ? getBpm(a.r) - getBpm(b.r)
+      : getBpm(b.r) - getBpm(a.r)
+    );
+    // Push records with no BPM to end
+    view.sort((a,b) => {
+      const hasBpmA = getBpm(a.r) > 0, hasBpmB = getBpm(b.r) > 0;
+      if (hasBpmA && !hasBpmB) return -1;
+      if (!hasBpmA && hasBpmB) return 1;
+      return 0;
+    });
+  }
+
+  if (!view.length) {
+    list.innerHTML = `<div class="empty-state" style="padding:40px 0">
+      <div class="empty-icon">🔍</div>
+      <div class="empty-title">No matches</div>
+      <div class="empty-sub">Try a different genre or style filter</div>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = view.map(({r, i}) => {
+    const tracks = parseTracksToObjects(r.tracks);
+    const bpms = tracks.map(t=>+t.bpm).filter(Boolean);
+    const bpmMin = bpms.length ? Math.min(...bpms) : (+r.bpm||0);
+    const bpmMax = bpms.length ? Math.max(...bpms) : (+r.bpm||0);
+    const bpmStr = bpmMin
+      ? (bpmMin === bpmMax ? `${bpmMin}` : `${bpmMin}–${bpmMax}`)
+      : '';
+    const styleStr = (r.style||[]).slice(0,2).join(' · ');
+    return `<div class="coll-item" data-idx="${i}">
+      <div class="c-thumb"><img src="${r.fullImg || r.thumb}" alt="" onerror="this.parentElement.innerHTML='💿'"></div>
+      <div class="c-info">
+        <div class="c-title">${r.title}</div>
+        <div class="c-artist">${r.artist}</div>
+        <div class="c-badges">
+          <span class="b-grade">${r.recordGrade}</span>
+          ${styleStr ? `<span class="b-meta">${styleStr}</span>` : ''}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0">
+        ${bpmStr ? `<div class="c-bpm">${bpmStr}<small>BPM</small></div>` : ''}
+        <div class="c-arrow">›</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setSortMode(mode) {
+  sortMode = mode;
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  if (mode === 'az' || mode === 'za') {
+    const btn = document.getElementById('sortLbl');
+    btn.classList.add('active');
+    btn.textContent = mode === 'az' ? 'A→Z' : 'Z→A';
+  } else {
+    const btn = document.getElementById('sortBpm');
+    btn.classList.add('active');
+    btn.textContent = mode === 'bpm_asc' ? 'BPM ↑' : 'BPM ↓';
+  }
+  renderColl();
+}
+
+function toggleSort() {
+  // cycle A→Z → Z→A → back
+  setSortMode(sortMode === 'az' ? 'za' : 'az');
+}
+
+function toggleBpmSort() {
+  setSortMode(sortMode === 'bpm_asc' ? 'bpm_desc' : 'bpm_asc');
+}
+
+// ══════════════════════════════════
+// DETAIL
+// ══════════════════════════════════
+async function openDetail(i) {
+  if (i < 0 || i >= vault.length) return;
+  detIdx = i;
+  const r = vault[i];
+
+  // Grade options
+  const grades = ['M','NM','VG+','VG','G+','G'];
+  const gradeNames = {M:'Mint',NM:'N.Mint','VG+':'V.Gd+',VG:'V.Gd','G+':'Gd+',G:'Good'};
+
+  // Genre + style combined
+  const genreItems = r.genre || [];
+  const styleItems = r.style || [];
+  const genreStyle = [...genreItems, ...styleItems]; // kept for label rendering
+
+  // Info grid cells (no grade — shown as editable below)
+  const infoCells = [
+    { key: 'Year',    val: r.year },
+    { key: 'Country', val: r.country && r.country !== '—' ? r.country : null },
+    { key: 'Format',  val: r.format },
+    { key: 'Label',   val: r.label  && r.label  !== '—' ? r.label  : null },
+    { key: 'Cat No',  val: r.catno  && r.catno  !== '—' ? r.catno  : null },
+    { key: 'Key',     val: r.key || null },
+  ].filter(c => c.val);
+
+  const tracks = parseTracksToObjects(r.tracks);
+  const needsTracks = !tracks.length && r.discogsId;
+
+  // Use highest-res image available
+  const detThumbSrc = r.fullImg || r.thumb || '';
+  document.getElementById('detContent').innerHTML = `
+    <div class="detail-cover">
+      <div class="detail-cover-thumb">
+        <img src="${detThumbSrc}" alt="" onerror="this.style.display='none'">
+      </div>
+      <div class="detail-cover-text">
+        <div class="det-title">${escHtml(r.title)}</div>
+        <div class="det-artist">${escHtml(r.artist)}</div>
+      </div>
+    </div>
+
+    <div class="det-section">
+      <div class="det-section-lbl">Record condition</div>
+      <div class="det-grade-row" id="detRecGrades">
+        ${grades.map(g=>`<button class="det-g-pill${r.recordGrade===g?' sel':''}" data-grade="${g}" data-type="rec">${g}</button>`).join('')}
+      </div>
+      <div class="det-section" style="padding:8px 0 0;border:none">
+        <div class="det-section-lbl">Sleeve condition</div>
+        <div class="det-grade-row" id="detSlvGrades">
+          ${grades.map(g=>`<button class="det-g-pill${r.sleeveGrade===g?' sel':''}" data-grade="${g}" data-type="slv">${g}</button>`).join('')}
+        </div>
+      </div>
+      <div class="det-grade-saved" id="detGradeSaved">✓ Saved</div>
+    </div>
+
+    ${infoCells.length ? `
+    <div class="det-grid" style="margin:0">
+      ${infoCells.map(c=>`
+        <div class="det-cell">
+          <div class="det-key">${c.key}</div>
+          <div class="det-val" style="font-size:${String(c.val).length>6?'9px':'11px'};line-height:1.3">${escHtml(String(c.val))}</div>
+        </div>`).join('')}
+    </div>` : ''}
+
+    ${genreItems.length ? `
+    <div class="det-section">
+      <div class="det-section-lbl">Genre</div>
+      <div class="det-tags">
+        ${genreItems.map(g=>`<span class="det-tag">${escHtml(g)}</span>`).join('')}
+      </div>
+    </div>` : ''}
+    ${styleItems.length ? `
+    <div class="det-section">
+      <div class="det-section-lbl">Style</div>
+      <div class="det-tags">
+        ${styleItems.map(g=>`<span class="det-tag">${escHtml(g)}</span>`).join('')}
+      </div>
+    </div>` : ''}
+
+    ${r.press && r.press !== '—' ? `
+    <div class="det-section">
+      <div class="det-section-lbl">Pressing</div>
+      <div style="font-family:'Inter', sans-serif;font-size:12px;color:var(--text)">${escHtml(r.press)}</div>
+    </div>` : ''}
+
+    <div class="det-section" id="detTrackSection" style="border-bottom:none">
+      <div class="det-section-lbl">Tracklist</div>
+      <div id="detTrackList">
+        ${tracks.length
+          ? tracks.map(t=>`
+            <div class="det-track-row">
+              <span class="det-track-pos">${escHtml(t.pos)}</span>
+              <span class="det-track-name">${escHtml(t.name)}</span>
+              ${t.bpm ? `<span class="det-track-bpm">${escHtml(t.bpm)}</span>` : ''}
+            </div>`).join('')
+          : needsTracks
+            ? '<div class="det-tracklist-loading">Fetching tracklist…</div>'
+            : '<div style="font-family:&quot;Syne Mono&quot;,monospace;font-size:11px;color:var(--muted)">No tracklist available</div>'
+        }
+      </div>
+    </div>
+
+    <div class="det-section" id="detPriceSection" style="border-bottom:none">
+      <div class="det-section-lbl">Marketplace</div>
+      <div id="detPriceContent" class="det-tracklist-loading">Fetching prices…</div>
+    </div>
+
+    <div class="det-actions">
+      <button class="btn-primary" id="btnLblFromDetail">🖨&nbsp; Print Label</button>
+      <button class="btn-ghost" style="color:var(--red);border-color:rgba(224,80,80,0.3)" id="btnRemoveRecord">Remove from vault</button>
+    </div>
+    <div style="height:20px"></div>`;
+
+  openOvl('detOvl');
+
+  // Wire grade pill clicks
+  document.getElementById('detContent').addEventListener('click', e => {
+    const pill = e.target.closest('.det-g-pill');
+    if (!pill) return;
+    const type  = pill.dataset.type;
+    const grade = pill.dataset.grade;
+    const row   = type === 'rec' ? 'detRecGrades' : 'detSlvGrades';
+    document.querySelectorAll(`#${row} .det-g-pill`).forEach(p => p.classList.remove('sel'));
+    pill.classList.add('sel');
+    if (type === 'rec') vault[detIdx].recordGrade = grade;
+    else                vault[detIdx].sleeveGrade = grade;
+    save(); renderColl();
+    // Flash "Saved"
+    const saved = document.getElementById('detGradeSaved');
+    saved.classList.add('show');
+    setTimeout(() => saved.classList.remove('show'), 1500);
+  });
+
+  document.getElementById('btnLblFromDetail').addEventListener('click', lblFromDetail);
+  document.getElementById('btnRemoveRecord').addEventListener('click', removeRecord);
+
+  // Fetch price stats (fire-and-forget)
+  if (r.discogsId) fetchPriceStats(r.discogsId);
+  else {
+    const pc = document.getElementById('detPriceContent');
+    if (pc) { pc.textContent = 'No Discogs ID'; pc.classList.remove('det-tracklist-loading'); }
+  }
+
+  // Fetch tracklist + genre/style if missing
+  if (needsTracks || (!r.genre && !r.style)) {
+    try {
+      const data = await proxyFetch(`https://api.discogs.com/releases/${r.discogsId}?token=${DISCOGS_TOKEN}`);
+
+      if (!r.genre || !r.style) {
+        vault[detIdx].genre = data.genres || [];
+        vault[detIdx].style = data.styles || [];
+      }
+
+      if (needsTracks && data.tracklist) {
+        vault[detIdx].tracks = data.tracklist
+          .filter(t => t.type_ !== 'heading')
+          .map(t => ({ pos: t.position, name: t.title, bpm: '', show: false }));
+        save();
+
+        const tl = document.getElementById('detTrackList');
+        if (tl) {
+          const fetched = parseTracksToObjects(vault[detIdx].tracks);
+          tl.innerHTML = fetched.length
+            ? fetched.map(t=>`
+              <div class="det-track-row">
+                <span class="det-track-pos">${escHtml(t.pos)}</span>
+                <span class="det-track-name">${escHtml(t.name)}</span>
+              </div>`).join('')
+            : '<div style="font-family:&quot;Syne Mono&quot;,monospace;font-size:11px;color:var(--muted)">No tracklist available</div>';
+        }
+      }
+      save();
+    } catch(e) {
+      const tl = document.getElementById('detTrackList');
+      if (tl && needsTracks) tl.innerHTML = '<div style="font-family:monospace;font-size:11px;color:var(--muted)">Could not load tracklist</div>';
+    }
+  }
+}
+
+// ══════════════════════════════════
+// PRICE STATS
+// ══════════════════════════════════
+async function fetchPriceStats(discogsId) {
+  const pc = document.getElementById('detPriceContent');
+  if (!pc) return;
+  try {
+    // Use the release endpoint — marketplace/stats only has lowest + num_for_sale reliably
+    const data = await proxyFetch(
+      `https://api.discogs.com/releases/${discogsId}?token=${DISCOGS_TOKEN}&curr_abbr=EUR`
+    );
+
+    const lowest  = data.lowest_price;
+    const forSale = data.num_for_sale ?? 0;
+    const fmt = v => v != null ? `€${parseFloat(v).toFixed(2)}` : '—';
+
+    pc.classList.remove('det-tracklist-loading');
+    pc.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:16px;font-weight:700;color:var(--accent)">${fmt(lowest)}</div>
+          <div style="font-size:9px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.05em">Lowest listing</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:16px;font-weight:700;color:var(--text)">${forSale}</div>
+          <div style="font-size:9px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.05em">For sale</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button id="btnViewListings" style="flex:1;padding:9px;border-radius:8px;
+          border:1px solid var(--line2);background:none;color:var(--mid);
+          font-family:'Inter',sans-serif;font-size:11px;cursor:pointer">
+          Listings ↗
+        </button>
+        <button id="btnViewHistory" style="flex:1;padding:9px;border-radius:8px;
+          border:1px solid var(--line2);background:none;color:var(--mid);
+          font-family:'Inter',sans-serif;font-size:11px;cursor:pointer">
+          Sales history ↗
+        </button>
+      </div>`;
+
+    document.getElementById('btnViewListings')?.addEventListener('click', () => {
+      window.open(`https://www.discogs.com/sell/list?release_id=${discogsId}&sort=price,asc`, '_blank');
+    });
+    document.getElementById('btnViewHistory')?.addEventListener('click', () => {
+      window.open(`https://www.discogs.com/sell/history/${discogsId}`, '_blank');
+    });
+
+  } catch(e) {
+    const pc2 = document.getElementById('detPriceContent');
+    if (pc2) { pc2.textContent = 'Price data unavailable'; pc2.classList.remove('det-tracklist-loading'); }
+  }
+}
+
+function openLabelOverlay(idx) {
+  // Populate dropdown first (resets innerHTML)
+  const sel = document.getElementById('lblSel');
+  sel.innerHTML = '<option value="">— select from collection —</option>';
+  vault.forEach((r,i) => {
+    sel.innerHTML += `<option value="${i}">${escHtml(r.artist)} — ${escHtml(r.title)} (${r.recordGrade})</option>`;
+  });
+
+  // Now set the value and trigger render
+  if (idx !== undefined && idx !== null && vault[idx]) {
+    sel.value = idx;
+    lblIdx = idx;
+    const r = vault[idx];
+    const tracks = parseTracksToObjects(r.tracks);
+    vault[idx].tracks = tracks;
+    renderTrackEditor('lblTrackEditor', tracks, (updated) => {
+      vault[idx].tracks = updated;
+      save();
+      renderLabel();
+    });
+    document.getElementById('lblExtra').style.display = 'block';
+    document.getElementById('lblSheetSub').textContent = `${r.artist} — ${r.title}`;
+  } else {
+    lblIdx = -1;
+    document.getElementById('lblExtra').style.display = 'none';
+    document.getElementById('lblSheetSub').textContent = 'Select a record';
+  }
+
+  renderLabel();
+  detectPrinter();
+  go('lbl', document.getElementById('nav-lbl'));
+}
+
+function lblFromDetail() {
+  closeOvl('detOvl');
+  setTimeout(()=>{
+    openLabelOverlay(detIdx);
+  }, 280);
+}
+
+function removeRecord() {
+  vault.splice(detIdx,1); save();
+  closeOvl('detOvl'); renderColl(); updateMeta();
+  toast('Record removed');
+}
+
+// ══════════════════════════════════
+// DISCOGS IMPORT
+// ══════════════════════════════════
+async function importCollection() {
+  const username = document.getElementById('importUsername').value.trim();
+  if (!username) { toast('Enter your Discogs username', 'err'); return; }
+
+  document.getElementById('importProgress').style.display = 'block';
+  document.getElementById('btnImportGo').disabled = true;
+
+  const setStatus = (msg, pct) => {
+    document.getElementById('importStatus').textContent = msg;
+    document.getElementById('importBar').style.width = pct + '%';
+  };
+
+  try {
+    let page = 1, total = 0, imported = 0, skipped = 0;
+    const newRecords = [];
+    const existingIds = new Set(vault.map(r => r.discogsId));
+
+    setStatus('Fetching page 1…', 5);
+
+    while (true) {
+      const url = `https://api.discogs.com/users/${encodeURIComponent(username)}/collection/folders/0/releases?per_page=100&page=${page}&token=${DISCOGS_TOKEN}`;
+      const data = await proxyFetch(url);
+
+      if (page === 1) {
+        total = data.pagination?.items || data.releases?.length || 0;
+        if (!total) { toast('No vinyl found for that username', 'err'); break; }
+      }
+
+      const releases = data.releases || [];
+      if (!releases.length) break;
+
+      for (const item of releases) {
+        const r = item.basic_information || item;
+        const id = r.id;
+
+        // Skip if already in vault
+        if (existingIds.has(id)) { skipped++; continue; }
+
+        const label  = Array.isArray(r.labels)  ? (r.labels[0]?.name  || '—') : '—';
+        const fmt    = Array.isArray(r.formats)  ? (r.formats[0]?.name || 'LP') : 'LP';
+        const fmtDesc= Array.isArray(r.formats)  && r.formats[0]?.descriptions
+                       ? r.formats[0].descriptions.join(', ') : '';
+        const artist = Array.isArray(r.artists)
+          ? r.artists.map(a => a.name).join(', ')
+          : (r.artist || 'Unknown');
+        const country = r.country || '—';
+        const year    = String(r.year || item.date_added?.slice(0,4) || '—');
+        const press   = [country, year, fmtDesc].filter(Boolean).join(' · ');
+
+        newRecords.push({
+          discogsId: id,
+          title:     r.title  || '—',
+          artist,
+          year,
+          label,
+          country,
+          catno:     r.labels?.[0]?.catno || '—',
+          format:    fmt,
+          press,
+          thumb:     r.cover_image || r.thumb || '',
+          fullImg:   r.cover_image || '',
+          genre:     Array.isArray(r.genres) ? r.genres : [],
+          style:     Array.isArray(r.styles) ? r.styles : [],
+          tracks:    [],
+          recordGrade: item.rating ? ['','G','G+','VG','VG+','NM','M'][item.rating] || '—' : '—',
+          sleeveGrade: '—',
+          addedAt:   Date.now()
+        });
+        existingIds.add(id);
+      }
+
+      imported = newRecords.length;
+      const done = Math.min((page * 100), total);
+      const pct  = Math.round((done / total) * 90) + 5;
+      setStatus(`Fetched ${done} of ${total}…`, pct);
+
+      if (!data.pagination?.urls?.next) break;
+      page++;
+      await new Promise(r => setTimeout(r, 250)); // be nice to the API
+    }
+
+    vault.push(...newRecords);
+    save(); updateMeta(); renderColl();
+    setStatus(`Done! Added ${newRecords.length} records${skipped ? `, skipped ${skipped} duplicates` : ''}.`, 100);
+    document.getElementById('btnImportGo').disabled = false;
+    setTimeout(() => {
+      closeOvl('importOvl');
+      document.getElementById('importProgress').style.display = 'none';
+      document.getElementById('importBar').style.width = '0%';
+    }, 2000);
+    toast(`Imported ${newRecords.length} records ✓`, 'ok');
+
+  } catch(e) {
+    console.error('Import error:', e);
+    setStatus('Error: ' + e.message.slice(0, 60), 0);
+    document.getElementById('btnImportGo').disabled = false;
+    toast('Import failed: ' + e.message.slice(0,50), 'err');
+  }
+}
+
+// ══════════════════════════════════
+// CSV EXPORT
+// ══════════════════════════════════
+function exportCsv() {
+  if (!vault.length) { toast('Nothing to export', 'err'); return; }
+
+  // Discogs collection CSV format
+  // Headers: Catalog#, Artist, Title, Label, Format, Rating, Released, release_id, CollectionFolder, Date Added, Collection Media Condition, Collection Sleeve Condition, Collection Notes
+  const gradeToRating = { M:5, NM:5, 'VG+':4, VG:3, 'G+':2, G:1 };
+
+  const headers = [
+    'Catalog#','Artist','Title','Label','Format','Rating',
+    'Released','release_id','CollectionFolder','Date Added',
+    'Collection Media Condition','Collection Sleeve Condition','Collection Notes'
+  ];
+
+  const rows = vault.map(r => {
+    const rating = gradeToRating[r.recordGrade] || '';
+    const added  = r.addedAt ? new Date(r.addedAt).toISOString().slice(0,10) : '';
+    const tracks = parseTracksToObjects(r.tracks);
+    const bpmNotes = tracks.filter(t=>t.bpm).map(t=>`${t.pos} ${t.name} ${t.bpm}BPM`).join('; ');
+    const notes = [
+      r.key   ? `Key: ${r.key}` : '',
+      bpmNotes,
+      (r.genre||[]).length ? `Genre: ${r.genre.join(', ')}` : '',
+      (r.style||[]).length ? `Style: ${r.style.join(', ')}` : '',
+    ].filter(Boolean).join(' | ');
+
+    return [
+      r.catno   || '',
+      r.artist  || '',
+      r.title   || '',
+      r.label   || '',
+      r.format  || '',
+      rating,
+      r.year    || '',
+      r.discogsId || '',
+      'Uncategorized',
+      added,
+      r.recordGrade || '',
+      r.sleeveGrade || '',
+      notes
+    ];
+  });
+
+  // Build CSV string
+  const escape = v => {
+    const s = String(v ?? '');
+    return s.includes(',') || s.includes('"') || s.includes('\n')
+      ? '"' + s.replace(/"/g, '""') + '"'
+      : s;
+  };
+
+  const csv = [headers, ...rows]
+    .map(row => row.map(escape).join(','))
+    .join('\n');
+
+  // Download
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `waxlog-export-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast(`Exported ${vault.length} records ✓`, 'ok');
+}
+
+// ══════════════════════════════════
+// LABEL
+// ══════════════════════════════════
+function populateLblSel() {
+  const sel = document.getElementById('lblSel');
+  const v = sel.value;
+  sel.innerHTML = '<option value="">— select from collection —</option>';
+  vault.forEach((r,i)=>{ sel.innerHTML+=`<option value="${i}">${escHtml(r.artist)} — ${escHtml(r.title)} (${r.recordGrade})</option>`; });
+  sel.value = v;
+  renderLabel();
+}
+
+function onLblChange() {
+  const idx = parseInt(document.getElementById('lblSel').value);
+  lblIdx = isNaN(idx) ? -1 : idx;
+  if (lblIdx >= 0) {
+    const r = vault[lblIdx];
+    
+
+    // Migrate legacy string tracks to objects
+    const tracks = parseTracksToObjects(r.tracks);
+    vault[lblIdx].tracks = tracks; // normalise in place
+    renderTrackEditor('lblTrackEditor', tracks, (updated) => {
+      vault[lblIdx].tracks = updated;
+      save();
+      renderLabel();
+    });
+    document.getElementById('lblExtra').style.display = 'block';
+  } else {
+    document.getElementById('lblExtra').style.display = 'none';
+  }
+  renderLabel();
+}
+
+function setSize(s, btn) {
+  lblSize = s;
+  document.querySelectorAll('.sz-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLabel();
+}
+
+function populateLblSel() {
+  const sel = document.getElementById('lblSel');
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— select from collection —</option>' +
+    vault.map((r,i) => `<option value="${i}">${escHtml(r.artist)} – ${escHtml(r.title)}</option>`).join('');
+  if (prev) sel.value = prev;
+}
+
+function getLblToggle(id) {
+  const el = document.getElementById(id);
+  return el ? el.checked : true;
+}
+
+function renderLabel() {
+  const lbl = document.getElementById('dymoLabel');
+  lbl.className = `dymo-paper ${lblSize}`;
+  if (lblIdx < 0) { lbl.innerHTML='<div class="d-empty">Select a record above</div>'; return; }
+  const r   = vault[lblIdx];
+
+  // Read toggle states
+  const showArtist = getLblToggle('ltArtist');
+  const showTitle  = getLblToggle('ltTitle');
+  const showPress  = getLblToggle('ltPress');
+  const showYear   = getLblToggle('ltYear');
+  const showGrade  = getLblToggle('ltGrade');
+  const showGenre  = getLblToggle('ltGenre');
+  const showStyle  = getLblToggle('ltStyle');
+  const showBpm    = getLblToggle('ltBpm');
+
+  const bpm = showBpm ? (r.bpm || '') : '';
+  const tracks = parseTracksToObjects(r.tracks);
+  const max = lblSize==='s' ? 3 : lblSize==='m' ? 5 : 8;
+  const visibleTracks = tracks.filter(t => t.show).slice(0, max);
+
+  const trackBpms = visibleTracks.map(t => t.bpm).filter(Boolean);
+  const allSameBpm = trackBpms.length > 0 && trackBpms.every(b => b === trackBpms[0]);
+  const cornerBpm = bpm || (allSameBpm ? trackBpms[0] : '');
+  const pr = cornerBpm ? 'padding-right:62px' : '';
+
+  const showInlineBpm = trackBpms.length > 0 && !allSameBpm && !bpm;
+  const trackLines = visibleTracks.map(t => {
+    const name = [t.pos, t.name].filter(Boolean).join(' ');
+    const bpmCell = (showInlineBpm && t.bpm)
+      ? `&nbsp;&nbsp;&nbsp;<span class="d-track-bpm">${t.bpm}<span class="d-track-bpm-unit">bpm</span></span>`
+      : '';
+    return `<div class="d-track-row">${name}${bpmCell}</div>`;
+  });
+
+  const genreStyle = [...(showGenre ? (r.genre||[]) : []), ...(showStyle ? (r.style||[]) : [])];
+  const genreStyleLine = genreStyle.length
+    ? `<div class="d-meta d-genre" style="${pr}">${genreStyle.join(' · ')}</div>` : '';
+
+  // Build meta line
+  const metaParts = [];
+  if (showPress && r.press) metaParts.push(`<span>${r.press}</span>`);
+  if (showYear  && r.year)  metaParts.push(`<span>${r.year}</span>`);
+  if (showGrade && (r.recordGrade||r.sleeveGrade)) metaParts.push(`<span class="d-grade">${r.recordGrade||'—'}/${r.sleeveGrade||'—'}</span>`);
+  const metaLine = metaParts.length
+    ? `<div class="d-meta" style="${pr}">${metaParts.join('<span class="d-sep">·</span>')}</div>` : '';
+
+  lbl.innerHTML = `
+    ${showArtist ? `<div class="d-artist" style="${pr}">${escHtml(r.artist)}</div>` : ''}
+    ${showTitle  ? `<div class="d-title"  style="${pr}">${escHtml(r.title)}</div>`  : ''}
+    ${metaLine}
+    ${genreStyleLine}
+    ${trackLines.length ? `<div class="d-tracks" style="${pr}">${trackLines.join('')}</div>` : ''}
+    ${cornerBpm ? `<div class="d-bpm">${cornerBpm}<small>BPM</small></div>` : ''}`;
+}
+
+function detectPrinter() {
+  // Real: use DYMO Connect Web SDK at http://127.0.0.1:41951/DYMO/DLS/Printing/Check
+  // Simulate connected when records exist
+  const on = vault.length > 0;
+  document.getElementById('pDot').className   = 'dot' + (on ? ' on' : '');
+  document.getElementById('pName').textContent = on ? 'Dymo LW 550' : 'No printer found';
+}
+
+function doPrint() {
+  if (lblIdx < 0) { toast('Select a record first','err'); return; }
+
+  // Open window immediately — must stay in user gesture chain, no setTimeout
+  const win = window.open('','_blank','width=480,height=360');
+  if (!win) { toast('Allow popups for this page to print','err'); return; }
+
+  const r   = vault[lblIdx];
+    const bpm = r.bpm || '';
+    const key = '';
+    const tracks = parseTracksToObjects(r.tracks);
+    const visibleTracks = tracks.filter(t => t.show);
+    const trackBpms = visibleTracks.map(t => t.bpm).filter(Boolean);
+    const allSameBpm = trackBpms.length > 0 && trackBpms.every(b => b === trackBpms[0]);
+    const showInlineBpm = trackBpms.length > 0 && !allSameBpm && !bpm;
+    const lines = visibleTracks.map(t => {
+      const base = [t.pos, t.name].filter(Boolean).join(' ');
+      return showInlineBpm && t.bpm ? `${base} <span style="color:#888;font-size:.85em">${t.bpm} <span style="font-size:.8em;opacity:.7">BPM</span></span>` : base;
+    });
+    const cornerBpm = bpm || (allSameBpm ? trackBpms[0] : '');
+    const moods = r.moods&&r.moods.length ? r.moods.join(' · ') : '';
+    const printGs = [...(r.genre||[]), ...(r.style||[])];
+    const sz = lblSize==='s' ? '54mm 25mm' : lblSize==='m' ? '89mm 28mm' : '89mm 36mm';
+    const pr = cornerBpm ? 'padding-right:14mm' : '';
+    const fs = lblSize==='s' ? '7' : lblSize==='m' ? '9' : '11';
+    win.document.write(`<!DOCTYPE html><html><head><title>Label</title>
+    <style>
+      @page{margin:0;size:${sz}}
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:'Helvetica Neue',Arial,sans-serif;padding:4mm 4mm 4mm 7mm;position:relative;background:#fff;color:#000}
+      body::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2.5mm;background:#000}
+      .a{font-size:${fs}pt;font-weight:800;color:#000}
+      .t{font-size:${+fs-2}pt;color:#222;margin-top:.5mm}
+      .m{font-size:${+fs-3}pt;color:#555;margin-top:1mm}
+      .tr{font-size:${+fs-3.5}pt;color:#333;margin-top:1.5mm;line-height:1.4}
+      .bpm{position:absolute;right:3mm;top:50%;transform:translateY(-50%);background:#000;color:#fff;font-size:${+fs+4}pt;font-weight:800;padding:2mm 3mm;border-radius:1.5mm;text-align:center;line-height:1}
+      .bpm small{font-size:6pt;font-weight:400;display:block;margin-top:.5mm}
+    </style></head><body>
+    <div class="a" style="${pr}">${r.artist}</div>
+    <div class="t" style="${pr}">${r.title}</div>
+    <div class="m" style="${pr}">${r.press} · ${r.year} · <strong>${r.recordGrade}/${r.sleeveGrade}</strong>${key?' · '+key:''}</div>
+    ${moods?`<div class="m" style="${pr}">${moods}</div>`:''}
+    ${printGs.length?`<div class="m" style="color:#666;font-style:italic;${pr}">${printGs.join(' · ')}</div>`:''}
+    ${lines.length?`<div class="tr" style="${pr}">${lines.slice(0,6).join('<br>')}</div>`:''}
+    ${cornerBpm?`<div class="bpm">${cornerBpm}<small>BPM</small></div>`:''}
+    <script>window.onload=()=>{window.print()}<\/script>
+    </body></html>`);
+  win.document.close();
+}
+
+// ══════════════════════════════════
+// HELPERS
+// ══════════════════════════════════
+function openOvl(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function closeOvl(id){ document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+
+document.getElementById('addOvl').addEventListener('click',function(e){ if(e.target===this) closeOvl('addOvl'); });
+document.getElementById('detOvl').addEventListener('click',function(e){ if(e.target===this) closeOvl('detOvl'); });
+
+function save() { localStorage.setItem('waxlog3',JSON.stringify(vault)); }
+function updateMeta() {
+  const t=vault.length+' record'+(vault.length!==1?'s':'');
+  document.getElementById('topMeta').textContent=t;
+  document.getElementById('collMeta').textContent=t;
+}
+
+let toastTmr;
+function toast(msg,type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type?' '+type:'');
+  clearTimeout(toastTmr);
+  toastTmr = setTimeout(()=>el.classList.remove('show'), 2500);
+}
+
+// ══════════════════════════════════
+// INIT — wire all events via addEventListener (no inline onclick needed)
+// ══════════════════════════════════
+function init() {
+  updateMeta();
+
+  // Nav buttons
+  document.querySelectorAll('.nav-btn[data-screen]').forEach(btn => {
+    btn.addEventListener('click', () => go(btn.dataset.screen, btn));
+  });
+
+  // Scan zone + camera/gallery buttons
+  document.getElementById('scanZone').addEventListener('click', () =>
+    document.getElementById('fileInput').click()
+  );
+  document.getElementById('btnCamera').addEventListener('click', e => {
+    e.stopPropagation();
+    document.getElementById('fileInput').click();
+  });
+  document.getElementById('btnGallery').addEventListener('click', e => {
+    e.stopPropagation();
+    document.getElementById('galleryInput').click();
+  });
+  document.getElementById('fileInput').addEventListener('change', function() { hideLabelPrompt(); onFile(this); });
+  document.getElementById('galleryInput').addEventListener('change', function() { hideLabelPrompt(); onFile(this); });
+  document.getElementById('labelInput').addEventListener('change', function() { hideLabelPrompt(); onFile(this); });
+  document.getElementById('btnScanLabel').addEventListener('click', () => document.getElementById('labelInput').click());
+
+  // Search
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
+  document.querySelector('.btn-go').addEventListener('click', doSearch);
+
+  // Sort toggle
+  document.getElementById('sortLbl').addEventListener('click', toggleSort);
+  document.getElementById('sortBpm').addEventListener('click', toggleBpmSort);
+  document.getElementById('genreFilter').addEventListener('change', e => {
+    genreFilter = e.target.value;
+    renderColl();
+  });
+  document.getElementById('styleFilter').addEventListener('change', e => {
+    styleFilter = e.target.value;
+    renderColl();
+  });
+
+  // Label screen
+  document.getElementById('lblSel').addEventListener('change', onLblChange);
+  ['ltArtist','ltTitle','ltPress','ltYear','ltGrade','ltGenre','ltStyle','ltBpm'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', renderLabel);
+  });
+  document.querySelectorAll('.sz-tab[data-size]').forEach(btn => {
+    btn.addEventListener('click', () => setSize(btn.dataset.size, btn));
+  });
+
+
+  document.getElementById('btnPrint').addEventListener('click', doPrint);
+  document.getElementById('btnExport').addEventListener('click', doPrint);
+
+  // Grade pills
+  document.querySelectorAll('.g-pill[data-type]').forEach(pill => {
+    pill.addEventListener('click', () => setGrade(pill.dataset.type, pill.dataset.grade, pill));
+  });
+
+  // Add sheet actions
+  document.getElementById('btnConfirmAdd').addEventListener('click', confirmAdd);
+  document.getElementById('btnCancelAdd').addEventListener('click', () => closeOvl('addOvl'));
+
+  // Event delegation for dynamically rendered collection items
+  document.getElementById('btnSettings').addEventListener('click', () => {
+    document.getElementById('apiKeyInp').value = localStorage.getItem('waxlog_apikey') || '';
+    openOvl('settingsOvl');
+  });
+  document.getElementById('btnSaveKey').addEventListener('click', () => {
+    const ak = document.getElementById('apiKeyInp').value.trim();
+    if (ak) localStorage.setItem('waxlog_apikey', ak);
+    toast('Settings saved', 'ok');
+    closeOvl('settingsOvl');
+  });
+  document.getElementById('btnCancelSettings').addEventListener('click', () => closeOvl('settingsOvl'));
+  document.getElementById('settingsOvl').addEventListener('click', e => {
+    if (e.target === document.getElementById('settingsOvl')) closeOvl('settingsOvl');
+  });
+  document.getElementById('btnImport').addEventListener('click', () => openOvl('importOvl'));
+
+
+  document.getElementById('btnExportCsv').addEventListener('click', exportCsv);
+  document.getElementById('btnImportGo').addEventListener('click', importCollection);
+  document.getElementById('btnImportCancel').addEventListener('click', () => closeOvl('importOvl'));
+  document.getElementById('importDragHandle').addEventListener('click', () => closeOvl('importOvl'));
+  document.getElementById('importUsername').addEventListener('keydown', e => {
+    if (e.key === 'Enter') importCollection();
+  });
+  document.getElementById('importOvl').addEventListener('click', e => {
+    if (e.target === document.getElementById('importOvl')) closeOvl('importOvl');
+  });
+
+  document.getElementById('collList').addEventListener('click', e => {
+    const item = e.target.closest('.coll-item[data-idx]');
+    if (item) openDetail(parseInt(item.dataset.idx));
+  });
+
+  // Event delegation for dynamically rendered search results
+  document.getElementById('resultsList').addEventListener('click', e => {
+    const card = e.target.closest('.result-card[data-idx]');
+    if (card) pickResult(parseInt(card.dataset.idx));
+  });
+
+  // Detail drag handle close
+  document.getElementById('detDragHandle').addEventListener('click', () => closeOvl('detOvl'));
+
+  // Overlay backdrop close
+  document.getElementById('addOvl').addEventListener('click', e => {
+    if (e.target === document.getElementById('addOvl')) closeOvl('addOvl');
+  });
+  document.getElementById('detOvl').addEventListener('click', e => {
+    if (e.target === document.getElementById('detOvl')) closeOvl('detOvl');
+  });
+}
+
+init();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      console.log('SW registered:', reg.scope);
+    }).catch(err => console.log('SW error:', err));
+  });
+}
+</script>
+</body>
+</html>
